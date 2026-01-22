@@ -4,15 +4,14 @@
 
 1. .gitignore  
 2. Native Git Pre-Commit Hooks (Custom Scripts)  
-3. Gitleaks — Blocking Commits  
-4. Gitleaks — Repository & History Scanning  
+3. Block commits with Gitleaks  
+4. Gitleaks -> Repository & History Scanning  
 5. Gitleaks in GitHub Actions  
 6. Branch Protection Rules  
 7. RBAC  
 8. Mandatory Reviews  
-9. Signed Commits  
-10. CODEOWNERS  
-11. Dependabot  
+9. CODEOWNERS  
+10. Dependabot  
 
 ---
 
@@ -206,17 +205,6 @@ Best practices:
 - Minimum 1–2 reviewers
 - Code owners for sensitive paths
 - Security review for auth, infra, CI
-
----
-
-## Signed Commits
-
-```bash
-git commit -S -m "secure commit"
-git log --show-signature
-```
-
-Verified commits show a **Verified** badge.
 
 ---
 
