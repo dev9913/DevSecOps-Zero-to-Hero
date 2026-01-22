@@ -6,18 +6,17 @@
 2. Native Git Pre-Commit Hooks (Custom Scripts)  
 3. Gitleaks — Blocking Commits  
 4. Gitleaks — Repository & History Scanning  
-5. Gitleaks Installation Script  
-6. Gitleaks in GitHub Actions  
-7. Branch Protection Rules  
-8. RBAC  
-9. Mandatory Reviews  
-10. Signed Commits  
-11. CODEOWNERS  
-12. Dependabot  
+5. Gitleaks in GitHub Actions  
+6. Branch Protection Rules  
+7. RBAC  
+8. Mandatory Reviews  
+9. Signed Commits  
+10. CODEOWNERS  
+11. Dependabot  
 
 ---
 
-## 1️⃣ .gitignore — First Line of Defense
+## .gitignore — First Line of Defense
 
 ### Purpose
 Prevent sensitive files from ever being tracked by Git.
@@ -53,7 +52,7 @@ git status
 
 ---
 
-## 2️⃣ Native Git Pre-Commit Hooks (Custom Script)
+## Native Git Pre-Commit Hooks (Custom Script)
 
 ### What This Is
 A **pre-commit hook** is a script located at:
@@ -106,40 +105,24 @@ git commit -m "test commit"
 
 ---
 
-## 3️⃣ Gitleaks — Blocking Commits (Native Hook)
-
-### Purpose
-Use **real secret detection** instead of simple pattern matching.
-
----
+## Gitleaks — Blocking Commits (Native Hook)
 
 ### Replace Pre-Commit Hook with Gitleaks
 
-```bash
-cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/bash
+1. Install pre-commit from https://pre-commit.com/#install
+2. Create a `.pre-commit-config.yaml` file at the root of your repository with the following content:
 
-echo "🔍 Running Gitleaks pre-commit scan..."
-
-gitleaks protect --staged
-STATUS=$?
-
-if [ $STATUS -ne 0 ]; then
-  echo "❌ Gitleaks detected secrets. Commit blocked."
-  exit 1
-fi
-
-echo "✅ No secrets detected."
-exit 0
-EOF
-```
-
-Make executable:
-```bash
-chmod +x .git/hooks/pre-commit
-```
-
----
+   ```
+   repos:
+     - repo: https://github.com/gitleaks/gitleaks
+       rev: v8.24.2
+       hooks:
+         - id: gitleaks
+   ```
+   
+3. Auto-update the config to the latest repos' versions by executing `pre-commit autoupdate`
+4. Install with `pre-commit install`
+5. Now you're all set!
 
 ### Demo — Block a Secret Commit
 
@@ -153,55 +136,50 @@ git commit -m "adding secrets"
 
 ---
 
-## 4️⃣ Gitleaks — Repository & History Scanning
+## Gitleaks — Repository & History Scanning
 
-### Scan Working Tree
-```bash
-gitleaks detect --source .
+1. Create a custom rules file - `custom-rules.toml`
+
 ```
+[[rules]]
+id = "generic-password"
+description = "Detect any PASSWORD assignment"
+regex = '''(?i)password\s*=\s*["'][^"']+["']'''
+tags = ["password", "custom"]
+```
+
+2. Run the gitleaks command
+
+`gitleaks detect --config custom-rules.toml`
 
 ---
 
-### Scan Full Git History
-```bash
-gitleaks detect --source . --log-opts="--all"
+## Gitleaks in GitHub Actions
+
+### GitHub Action
+
+Check out the official [Gitleaks GitHub Action](https://github.com/gitleaks/gitleaks-action)
+
 ```
----
-
-## 5️⃣ Gitleaks Installation Script
-
-```bash
-#!/bin/bash
-set -e
-
-VERSION=8.18.1
-curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v$VERSION/gitleaks-linux-amd64 \
-  -o /usr/local/bin/gitleaks
-
-chmod +x /usr/local/bin/gitleaks
-gitleaks version
-```
-
----
-
-## 6️⃣ Gitleaks in GitHub Actions
-
-```yaml
-name: Secret Scan
-
-on: [pull_request]
-
+name: gitleaks
+on: [pull_request, push, workflow_dispatch]
 jobs:
-  gitleaks:
+  scan:
+    name: gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE}} # Only required for Organizations, not personal accounts.
 ```
 
 ---
 
-## 7️⃣ Branch Protection Rules
+## Branch Protection Rules
 
 Enforce:
 - No direct pushes to `main`
@@ -211,7 +189,7 @@ Enforce:
 
 ---
 
-## 8️⃣ RBAC — Least Privilege
+## RBAC — Least Privilege
 
 | Role | Permissions |
 |-----|-------------|
@@ -222,7 +200,7 @@ Enforce:
 
 ---
 
-## 9️⃣ Mandatory Reviews
+## Mandatory Reviews
 
 Best practices:
 - Minimum 1–2 reviewers
@@ -231,7 +209,7 @@ Best practices:
 
 ---
 
-## 🔟 Signed Commits
+## Signed Commits
 
 ```bash
 git commit -S -m "secure commit"
@@ -242,7 +220,7 @@ Verified commits show a **Verified** badge.
 
 ---
 
-## 1️⃣1️⃣ CODEOWNERS
+## CODEOWNERS
 
 ```text
 /.github/ @security-team
@@ -251,7 +229,7 @@ Verified commits show a **Verified** badge.
 
 ---
 
-## 1️⃣2️⃣ Dependabot
+## Dependabot
 
 ```yaml
 version: 2
