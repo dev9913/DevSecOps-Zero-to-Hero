@@ -18,9 +18,9 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # 2. Install Vault CLI
-      - name: Setup Vault
-        uses: hashicorp/setup-vault@v2
+      # 2. Install Vault CLI (official HashiCorp action)
+      - name: Install Vault
+        uses: hashicorp/vault-action@v2
         with:
           vault-version: "1.15.6"
 
@@ -41,7 +41,7 @@ jobs:
           echo "TF_VAR_aws_access_key=$(vault kv get -field=access_key kv/aws)" >> $GITHUB_ENV
           echo "TF_VAR_aws_secret_key=$(vault kv get -field=secret_key kv/aws)" >> $GITHUB_ENV
 
-      # 5. Install Terraform (pinned to latest)
+      # 5. Install Terraform (latest pinned)
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -49,8 +49,7 @@ jobs:
 
       # 6. Terraform Init & Apply
       - name: Terraform Apply
-        working-directory: terraform   # remove if tf files are in repo root
+        working-directory: terraform
         run: |
-          cd terraform
           terraform init
           terraform apply -auto-approve
